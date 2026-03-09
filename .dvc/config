@@ -3,4 +3,5 @@
     remote = minio
 ['remote "minio"']
     url = s3://wine-quality
-    endpointurl = http://127.0.0.1:9000
+    endpointurl = http://85.239.47.84:9000
+    ssl_verify = false

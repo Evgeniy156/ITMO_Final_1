@@ -40,18 +40,21 @@ pip install -r requirements.txt
 ```
 
 ### 2. Настройка DVC и MinIO
-Убедитесь, что у вас запущен S3 совместимый сервер MinIO (например через Docker):
+Убедитесь, что у вас настроено подключение к выделенному S3 совместимому серверу MinIO (выполняется автоматически, если вы запускали скрипт из проекта или если он уже в конфиге DVC):
+- **Web UI:** [http://85.239.47.84:9001](http://85.239.47.84:9001)
+- **S3 API:** `http://85.239.47.84:9000`
+
+Для подключения к хранилищу через DVC, в рабочей среде задайте данные учетной записи. Они совпадают с логином и паролем для Web UI (`kalininevgeny`/`VeryLongRandomSecret123`). Никогда не добавляйте эти ключи в публичные файлы!
 ```bash
-dvc remote add -d minio s3://wine-quality
-dvc remote modify minio endpointurl http://127.0.0.1:9000
+# В Windows PowerShell укажите:
+$env:AWS_ACCESS_KEY_ID="kalininevgeny"
+$env:AWS_SECRET_ACCESS_KEY="VeryLongRandomSecret123"
+
+# Или на Linux/Mac:
+# export AWS_ACCESS_KEY_ID="kalininevgeny"
+# export AWS_SECRET_ACCESS_KEY="VeryLongRandomSecret123"
 ```
-В рабочей среде также задайте данные вашей учётной записи (установите ключи AWS!):
-```bash
-# В Windows PowerShell:
-$env:AWS_ACCESS_KEY_ID="minioadmin"
-$env:AWS_SECRET_ACCESS_KEY="minioadmin"
-```
-Подтяните исходные данные и обученную модель:
+Затем подтяните исходные данные и обученную модель (настройки DVC remote хранятся в `.dvc/config` и не требуют SSL):
 ```bash
 dvc pull
 ```
