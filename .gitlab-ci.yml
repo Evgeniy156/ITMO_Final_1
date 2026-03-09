@@ -1,0 +1,45 @@
+stages:
+  - lint
+  - dvc-pull
+  - test
+
+variables:
+  PYTHON_VERSION: "3.11"
+  # Настройте AWS_ACCESS_KEY_ID и AWS_SECRET_ACCESS_KEY в GitLab CI/CD Variables
+
+lint:
+  stage: lint
+  image: python:${PYTHON_VERSION}-slim
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+  script:
+    - pip install flake8
+    - flake8 dags/ src/ tests/ --max-line-length=120
+
+dvc_pull:
+  stage: dvc-pull
+  image: python:${PYTHON_VERSION}-slim
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+  script:
+    - pip install dvc[s3]
+    - dvc pull data/wine_quality.csv.dvc
+    - dvc pull models/wine_quality_model.pkl.dvc
+    # Передача скачанных файлов дальше по pipeline
+  artifacts:
+    paths:
+      - data/wine_quality.csv
+      - models/wine_quality_model.pkl
+    expire_in: 1 hour
+
+test_api:
+  stage: test
+  image: python:${PYTHON_VERSION}-slim
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+  needs:
+    - dvc_pull
+  script:
+    - pip install -r requirements.txt
+    - export PYTHONPATH=.
+    - pytest tests/
