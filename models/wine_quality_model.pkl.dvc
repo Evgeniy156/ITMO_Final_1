@@ -1,0 +1,5 @@
+outs:
+- md5: 2bc4fa897f8df3ea8d6a6737e3f25516
+  size: 2225476
+  hash: md5
+  path: wine_quality_model.pkl
