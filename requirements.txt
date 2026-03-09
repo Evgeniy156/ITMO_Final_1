@@ -1,0 +1,9 @@
+dvc[s3]
+fastapi
+uvicorn
+pydantic
+scikit-learn
+pandas
+mlflow
+pytest
+httpx
