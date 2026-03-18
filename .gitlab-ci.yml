@@ -6,7 +6,7 @@ stages:
 variables:
   PYTHON_VERSION: "3.11"
   # ВНИМАНИЕ: Настройте AWS_ACCESS_KEY_ID и AWS_SECRET_ACCESS_KEY в GitLab CI/CD Variables
-  # Укажите логин 'kalininevgeny' и пароль 'VeryLongRandomSecret123', выданные для MinIO.
+  # Укажите логин '....' и пароль '....', выданные для MinIO.
   # Не вписывайте их прямо в этот файл!
 
 lint:
