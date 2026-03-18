@@ -5,7 +5,7 @@ from src.api.main import app
 
 @pytest.fixture
 def client():
-    # Использование контекстного менеджера 'with' гарантирует запуск событий lifespan (startup/shutdown)
+    # Использование контекстного менеджера гарантирует запуск событий lifespan
     with TestClient(app) as c:
         yield c
 
