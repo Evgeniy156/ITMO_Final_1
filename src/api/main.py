@@ -5,14 +5,41 @@ import os
 import logging
 from sklearn.base import BaseEstimator
 
+from contextlib import asynccontextmanager
+
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Wine Quality Prediction API")
-
 MODEL_PATH = "models/wine_quality_model.pkl"
 model: BaseEstimator = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global model
+    # Попытка подтянуть модель через DVC (в реальном приложении лучше сделать это до старта сервиса)
+    if not os.path.exists(MODEL_PATH):
+        logger.info("Модель не найдена локально. Пытаемся загрузить через DVC...")
+        # Примечание: os.system может не сработать в некоторых CI без настройки dvc
+        os.system(f"dvc pull {MODEL_PATH}.dvc")
+
+    if os.path.exists(MODEL_PATH):
+        try:
+            with open(MODEL_PATH, "rb") as f:
+                model = pickle.load(f)
+            logger.info("Модель успешно загружена.")
+        except Exception as e:
+            logger.error(f"Ошибка при загрузке модели: {e}")
+    else:
+        logger.warning("Модель не найдена даже после попытки dvc pull. Предсказания будут недоступны.")
+
+    yield
+    # Очистка ресурсов при остановке (если нужно)
+    model = None
+
+
+app = FastAPI(title="Wine Quality Prediction API", lifespan=lifespan)
 
 
 class WineFeatures(BaseModel):
@@ -48,24 +75,6 @@ class WineFeatures(BaseModel):
     }
 
 
-@app.on_event("startup")
-def load_model():
-    global model
-    # Попытка подтянуть модель через DVC (в реальном приложении лучше сделать это асинхронно или до старта сервиса)
-    if not os.path.exists(MODEL_PATH):
-        logger.info("Модель не найдена локально. Пытаемся загрузить через DVC...")
-        os.system("dvc pull models/wine_quality_model.pkl.dvc")
-
-    if os.path.exists(MODEL_PATH):
-        try:
-            with open(MODEL_PATH, "rb") as f:
-                model = pickle.load(f)
-            logger.info("Модель успешно загружена.")
-        except Exception as e:
-            logger.error(f"Ошибка при загрузке модели: {e}")
-            raise RuntimeError(f"Не удалось загрузить модель: {e}")
-    else:
-        logger.warning("Модель не найдена даже после попытки dvc pull. Предсказания будут недоступны.")
 
 
 @app.get("/healthcheck")

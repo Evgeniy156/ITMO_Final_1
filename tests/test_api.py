@@ -1,16 +1,22 @@
+import pytest
 from fastapi.testclient import TestClient
 from src.api.main import app
 
-client = TestClient(app)
+
+@pytest.fixture
+def client():
+    # Использование контекстного менеджера 'with' гарантирует запуск событий lifespan (startup/shutdown)
+    with TestClient(app) as c:
+        yield c
 
 
-def test_healthcheck():
+def test_healthcheck(client):
     response = client.get("/healthcheck")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
 
-def test_model_info():
+def test_model_info(client):
     response = client.get("/model-info")
     # Ожидаем 200 OK, так как в CI модель должна быть загружена через dvc pull
     assert response.status_code == 200
@@ -19,7 +25,7 @@ def test_model_info():
     assert "params" in json_data
 
 
-def test_predict():
+def test_predict(client):
     # Валидные данные
     payload = {
         "fixed_acidity": 7.4,
@@ -44,7 +50,7 @@ def test_predict():
     assert isinstance(json_data["prediction"], float)
 
 
-def test_predict_validation_error():
+def test_predict_validation_error(client):
     # Не хватает обязательных полей
     payload = {
         "fixed_acidity": 7.4
