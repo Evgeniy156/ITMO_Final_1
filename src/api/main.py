@@ -75,6 +75,7 @@ class WineFeatures(BaseModel):
         }
     }
 
+
 @app.get("/healthcheck")
 def healthcheck():
     return {"status": "ok"}
