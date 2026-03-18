@@ -1,11 +1,12 @@
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
 import pickle
 import os
 import logging
-from sklearn.base import BaseEstimator
-
 from contextlib import asynccontextmanager
+
+import pandas as pd
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from sklearn.base import BaseEstimator
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
@@ -74,9 +75,6 @@ class WineFeatures(BaseModel):
         }
     }
 
-
-
-
 @app.get("/healthcheck")
 def healthcheck():
     return {"status": "ok"}
@@ -106,8 +104,6 @@ def predict(features: WineFeatures):
     # Важно соблюдать порядок фичей, как в тренировочном датасете
     feature_dict = features.model_dump()
 
-    # Pandas DataFrame нужен, чтобы передать те же названия колонок, что были при обучении
-    import pandas as pd
     input_df = pd.DataFrame([feature_dict])
 
     try:
