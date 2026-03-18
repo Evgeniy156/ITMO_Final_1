@@ -1,0 +1,11 @@
+{
+  "skill_name": "python-lint-fixer",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Fix W293 error in src/api/main.py:107:1 and 117:1.",
+      "expected_output": "The blank lines at 107 and 117 should be completely empty (no spaces).",
+      "files": ["src/api/main.py"]
+    }
+  ]
+}

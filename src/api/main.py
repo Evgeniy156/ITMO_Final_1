@@ -104,7 +104,7 @@ def predict(features: WineFeatures):
     # Конвертируем входные данные в формат, ожидаемый sklearn
     # Модель была обучена на колонках с пробелами (из оригинального CSV)
     feature_dict = features.model_dump()
-    
+
     # Маппинг имен полей (snake_case -> оригинальные названия с пробелами)
     mapping = {
         "fixed_acidity": "fixed acidity",
@@ -114,7 +114,7 @@ def predict(features: WineFeatures):
         "free_sulfur_dioxide": "free sulfur dioxide",
         "total_sulfur_dioxide": "total sulfur dioxide"
     }
-    
+
     final_dict = {mapping.get(k, k): v for k, v in feature_dict.items()}
     input_df = pd.DataFrame([final_dict])
 
