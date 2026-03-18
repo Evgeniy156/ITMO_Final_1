@@ -102,10 +102,21 @@ def predict(features: WineFeatures):
         raise HTTPException(status_code=503, detail="Модель не загружена")
 
     # Конвертируем входные данные в формат, ожидаемый sklearn
-    # Важно соблюдать порядок фичей, как в тренировочном датасете
+    # Модель была обучена на колонках с пробелами (из оригинального CSV)
     feature_dict = features.model_dump()
-
-    input_df = pd.DataFrame([feature_dict])
+    
+    # Маппинг имен полей (snake_case -> оригинальные названия с пробелами)
+    mapping = {
+        "fixed_acidity": "fixed acidity",
+        "volatile_acidity": "volatile acidity",
+        "citric_acid": "citric acid",
+        "residual_sugar": "residual sugar",
+        "free_sulfur_dioxide": "free sulfur dioxide",
+        "total_sulfur_dioxide": "total sulfur dioxide"
+    }
+    
+    final_dict = {mapping.get(k, k): v for k, v in feature_dict.items()}
+    input_df = pd.DataFrame([final_dict])
 
     try:
         prediction = model.predict(input_df)
