@@ -14,6 +14,7 @@ app = FastAPI(title="Wine Quality Prediction API")
 MODEL_PATH = "models/wine_quality_model.pkl"
 model: BaseEstimator = None
 
+
 class WineFeatures(BaseModel):
     fixed_acidity: float
     volatile_acidity: float
@@ -46,6 +47,7 @@ class WineFeatures(BaseModel):
         }
     }
 
+
 @app.on_event("startup")
 def load_model():
     global model
@@ -53,7 +55,7 @@ def load_model():
     if not os.path.exists(MODEL_PATH):
         logger.info("Модель не найдена локально. Пытаемся загрузить через DVC...")
         os.system("dvc pull models/wine_quality_model.pkl.dvc")
-    
+
     if os.path.exists(MODEL_PATH):
         try:
             with open(MODEL_PATH, "rb") as f:
@@ -66,37 +68,39 @@ def load_model():
         logger.warning("Модель не найдена даже после попытки dvc pull. Предсказания будут недоступны.")
 
 
-@app.get("/health")
+@app.get("/healthcheck")
 def healthcheck():
     return {"status": "ok"}
+
 
 @app.get("/model-info")
 def model_info():
     if model is None:
         raise HTTPException(status_code=503, detail="Модель не загружена")
-    
+
     # В зависимости от того, какая модель загрузилась (LinearRegression/RandomForest)
     model_type = type(model).__name__
     info = {"model_type": model_type}
-    
+
     if hasattr(model, "get_params"):
         info["params"] = model.get_params()
-        
+
     return info
+
 
 @app.post("/predict")
 def predict(features: WineFeatures):
     if model is None:
         raise HTTPException(status_code=503, detail="Модель не загружена")
-    
+
     # Конвертируем входные данные в формат, ожидаемый sklearn
     # Важно соблюдать порядок фичей, как в тренировочном датасете
     feature_dict = features.model_dump()
-    
+
     # Pandas DataFrame нужен, чтобы передать те же названия колонок, что были при обучении
     import pandas as pd
     input_df = pd.DataFrame([feature_dict])
-    
+
     try:
         prediction = model.predict(input_df)
         return {"prediction": float(prediction[0])}

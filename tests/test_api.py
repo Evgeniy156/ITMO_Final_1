@@ -3,22 +3,21 @@ from src.api.main import app
 
 client = TestClient(app)
 
+
 def test_healthcheck():
-    response = client.get("/health")
+    response = client.get("/healthcheck")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
 
+
 def test_model_info():
     response = client.get("/model-info")
-    # Если модель не загружена (например, нет pkl), будет 503
-    if response.status_code == 200:
-        json_data = response.json()
-        assert "model_type" in json_data
-        assert "params" in json_data
-    elif response.status_code == 503:
-        assert response.json() == {"detail": "Модель не загружена"}
-    else:
-        assert False, f"Unexpected status code {response.status_code}"
+    # Ожидаем 200 OK, так как в CI модель должна быть загружена через dvc pull
+    assert response.status_code == 200
+    json_data = response.json()
+    assert "model_type" in json_data
+    assert "params" in json_data
+
 
 def test_predict():
     # Валидные данные
@@ -35,23 +34,21 @@ def test_predict():
         "sulphates": 0.56,
         "alcohol": 9.4
     }
-    
+
     response = client.post("/predict", json=payload)
-    
-    if response.status_code == 200:
-        json_data = response.json()
-        assert "prediction" in json_data
-        assert isinstance(json_data["prediction"], float)
-    elif response.status_code == 503:
-        assert response.json() == {"detail": "Модель не загружена"}
-    else:
-        assert False, f"Unexpected status code {response.status_code}"
+
+    # Ожидаем 200 OK, так как в CI модель должна быть загружена через dvc pull
+    assert response.status_code == 200
+    json_data = response.json()
+    assert "prediction" in json_data
+    assert isinstance(json_data["prediction"], float)
+
 
 def test_predict_validation_error():
     # Не хватает обязательных полей
     payload = {
         "fixed_acidity": 7.4
     }
-    
+
     response = client.post("/predict", json=payload)
-    assert response.status_code == 422 # Pydantic validation error
+    assert response.status_code == 422  # Pydantic validation error

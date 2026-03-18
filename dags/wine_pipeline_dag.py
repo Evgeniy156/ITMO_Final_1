@@ -36,7 +36,12 @@ with DAG(
 
     save_model_task = BashOperator(
         task_id='save_model_to_dvc',
-        bash_command='dvc add models/wine_quality_model.pkl && git add models/wine_quality_model.pkl.dvc && git commit -m "Update model via Airflow" || echo "No changes to commit"',
+        bash_command=(
+            'dvc add models/wine_quality_model.pkl && '
+            'git add models/wine_quality_model.pkl.dvc && '
+            'git commit -m "Update model via Airflow" || '
+            'echo "No changes to commit"'
+        ),
     )
 
     load_data_task >> train_model_task >> save_model_task
